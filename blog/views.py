@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from blog.models import Comment, Post, Tag
-from django.db.models import Count, Prefetch, Min
+from django.db.models import Count, Prefetch
 
 
 def serialize_post(post):
@@ -8,7 +8,7 @@ def serialize_post(post):
         'title': post.title,
         'teaser_text': post.text[:200],
         'author': post.author.username,
-        'comments_amount': post.comments_count if post.comments_count else None,
+        'comments_amount': post.comments_count,
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
@@ -16,11 +16,13 @@ def serialize_post(post):
         'first_tag_title': post.first_tag,
         }
 
+
 def serialize_tag(tag):
     return {
         'title': tag.title,
         'posts_with_tag': tag.posts_count,
     }
+
 
 def index(request):
     most_popular_posts = Post.objects.popular()[:5].\
@@ -67,7 +69,7 @@ def post_detail(request, slug):
         'text': post.text,
         'author': post.author.username,
         'comments': serialized_comments,
-        'likes_amount': len(likes),
+        'likes_amount': likes.count(),
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
