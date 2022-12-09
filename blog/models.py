@@ -26,13 +26,7 @@ class PostQuerySet(models.QuerySet):
         return posts_with_comments
 
     def fetch_with_tags_title(self):
-        posts_with_tag = self.annotate(first_tag=Min('tags'))
-        ids_tags = dict(posts_with_tag.values_list('id', 'first_tag'))
-        ids = posts_with_tag.values_list('first_tag')
-        tags = dict(Tag.objects.filter(id__in=ids).values_list('id', 'title'))
-        for post in posts_with_tag:
-            post.first_tag = tags[ids_tags[post.id]]
-        return posts_with_tag
+        return self.annotate(first_tag=Min('tags__title'))
 
 
 class Post(models.Model):
