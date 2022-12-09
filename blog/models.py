@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Min
 
 class TagQuerySet(models.QuerySet):
     def popular(self):
@@ -21,6 +21,14 @@ class PostQuerySet(models.QuerySet):
             post.comments_count = count_for_id[post.id]
         return posts_with_comments
 
+    def fetch_with_tags_title(self):
+        posts_with_tag = self.annotate(first_tag=Min('tags'))
+        ids_tags = dict(posts_with_tag.values_list('id','first_tag'))
+        ids = posts_with_tag.values_list('first_tag')
+        tags = dict(Tag.objects.filter(id__in=ids).values_list('id','title'))
+        for post in posts_with_tag:
+            post.first_tag = tags[ids_tags[post.id]]
+        return posts_with_tag
 
 class Post(models.Model):
     title = models.CharField('Заголовок', max_length=200)
